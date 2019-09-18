@@ -283,3 +283,257 @@ INSERT INTO [Customers] VALUES ('23RE3434', 'Mishev', 'Sofia', 'Sofia', NULL, NU
 INSERT INTO [RentalOrders] ([EmployeeId], [CustomerId], [CarId]) VALUES (1, 1, 1)
 INSERT INTO [RentalOrders] ([EmployeeId], [CustomerId], [CarId]) VALUES (1, 1, 1)
 INSERT INTO [RentalOrders] ([EmployeeId], [CustomerId], [CarId]) VALUES (1, 1, 1)
+
+--15 Hotel Database
+CREATE DATABASE [Hotel]
+GO
+USE [Hotel]
+Go
+
+CREATE TABLE [Employees](
+	[Id]		INT IDENTITY,
+	[FirstName]	NVARCHAR(30) NOT NULL,
+	[LastName]	NVARCHAR(30) NOT NULL,
+	[Title]		NVARCHAR(30),
+	[Notes]		TEXT,
+	CONSTRAINT PK_Employees PRIMARY KEY([Id])
+)
+
+CREATE TABLE [Customers](
+	[AccountNumber]		INT IDENTITY,
+	[FirstName]			NVARCHAR(30) NOT NULL,
+	[LastName]			NVARCHAR(30) NOT NULL,
+	[PhoneNumber]		NVARCHAR(30),
+	[EmergencyName]		NVARCHAR(30),
+	[EmergencyNumber]	NVARCHAR(30),
+	[Notes]				TEXT,
+	CONSTRAINT PK_Customers PRIMARY KEY([AccountNumber])
+)
+
+CREATE TABLE [RoomStatus](
+	[RoomStatus]		INT IDENTITY,
+	[Notes]				TEXT,
+	CONSTRAINT PK_RoomStatus PRIMARY KEY([RoomStatus])
+)
+
+CREATE TABLE [RoomTypes](
+	[RoomType]			INT IDENTITY,
+	[Notes]				TEXT,
+	CONSTRAINT PK_RoomTypes PRIMARY KEY([RoomType])
+)
+
+CREATE TABLE [BedTypes](
+	[BedType]			INT IDENTITY,
+	[Notes]				TEXT,
+	CONSTRAINT PK_BedTypes PRIMARY KEY([BedType])
+)
+
+CREATE TABLE [Rooms](
+	[RoomNumber]		INT,
+	[RoomType]			INT NOT NULL,
+	[BedType]			INT NOT NULL,
+	[Rate]				INT,
+	[RoomStatus]		INT NOT NULL,
+	[Notes]				TEXT,
+	CONSTRAINT PK_Rooms PRIMARY KEY([RoomNumber])
+)
+
+CREATE TABLE [Payments](
+	[Id]				INT IDENTITY,
+	[EmployeeId]		INT NOT NULL,
+	[PaymentDate]		DATE,
+	[AccountNumber]		INT,
+	[FirstDateOccupied]	DATE,
+	[LastDateOccupied]	DATE,
+	[TotalDays]			INT,
+	[AmountCharged]		DECIMAL(5,2),
+	[TaxRate]			DECIMAL(5,2),
+	[TaxAmount]			DECIMAL(5,2),
+	[PaymentTotal]		DECIMAL(5,2),
+	[Notes]				TEXT,
+	CONSTRAINT PK_Payments PRIMARY KEY([Id])
+)
+
+CREATE TABLE [Occupancies](
+	[Id]				INT IDENTITY,
+	[EmployeeId]		INT NOT NULL,
+	[DateOccupied]		DATE,
+	[AccountNumber]		INT,
+	[RoomNumber]		INT,
+	[RateApplied]		NVARCHAR(30),
+	[PhoneCharge]		NVARCHAR(30),
+	[Notes]				TEXT,
+	CONSTRAINT PK_Occupancies PRIMARY KEY([Id])
+)
+
+ALTER TABLE [Payments]
+ADD CONSTRAINT FK_Payments_Employees
+FOREIGN KEY ([EmployeeId]) REFERENCES [Employees]([Id])
+
+ALTER TABLE [Payments]
+ADD CONSTRAINT FK_Payments_Customers
+FOREIGN KEY ([AccountNumber]) REFERENCES [Customers]([AccountNumber])
+
+ALTER TABLE [Occupancies]
+ADD CONSTRAINT FK_Occupancies_Employees
+FOREIGN KEY ([EmployeeId]) REFERENCES [Employees]([Id])
+
+ALTER TABLE [Occupancies]
+ADD CONSTRAINT FK_Occupancies_Customers
+FOREIGN KEY ([AccountNumber]) REFERENCES [Customers]([AccountNumber])
+
+ALTER TABLE [Occupancies]
+ADD CONSTRAINT FK_Occupancies_Rooms
+FOREIGN KEY ([RoomNumber]) REFERENCES [Rooms]([RoomNumber])
+
+INSERT INTO [Employees] ([FirstName], [LastName]) VALUES ('Gosho', 'Ivanov')
+INSERT INTO [Employees] ([FirstName], [LastName]) VALUES ('Misho', 'Petkov')
+INSERT INTO [Employees] ([FirstName], [LastName]) VALUES ('Sara', 'Ivanova')
+
+INSERT INTO [Customers] ([FirstName], [LastName]) VALUES ('Sandra', 'Natcheva')
+INSERT INTO [Customers] ([FirstName], [LastName]) VALUES ('Marin', 'Nastev')
+INSERT INTO [Customers] ([FirstName], [LastName]) VALUES ('Petko', 'Mishev')
+
+INSERT INTO [RoomStatus] ([Notes]) VALUES ('Free')
+INSERT INTO [RoomStatus] ([Notes]) VALUES ('Busy')
+INSERT INTO [RoomStatus] ([Notes]) VALUES ('For Cleaning')
+
+INSERT INTO [RoomTypes] ([Notes]) VALUES ('Small')
+INSERT INTO [RoomTypes] ([Notes]) VALUES ('Big')
+INSERT INTO [RoomTypes] ([Notes]) VALUES ('Apartment')
+
+INSERT INTO [BedTypes] ([Notes]) VALUES ('Single')
+INSERT INTO [BedTypes] ([Notes]) VALUES ('Double')
+INSERT INTO [BedTypes] ([Notes]) VALUES ('Single + Double')
+
+INSERT INTO [Rooms] ([RoomNumber], [RoomType], [BedType], [RoomStatus]) VALUES (101, 1, 2, 3)
+INSERT INTO [Rooms] ([RoomNumber], [RoomType], [BedType], [RoomStatus]) VALUES (102, 3, 1, 1)
+INSERT INTO [Rooms] ([RoomNumber], [RoomType], [BedType], [RoomStatus]) VALUES (103, 2, 3, 2)
+
+INSERT INTO [Payments] ([EmployeeId]) VALUES (1)
+INSERT INTO [Payments] ([EmployeeId]) VALUES (2)
+INSERT INTO [Payments] ([EmployeeId]) VALUES (3)
+
+INSERT INTO [Occupancies] ([EmployeeId]) VALUES (1)
+INSERT INTO [Occupancies] ([EmployeeId]) VALUES (2)
+INSERT INTO [Occupancies] ([EmployeeId]) VALUES (3)
+
+--16 Create SoftUni Database
+CREATE DATABASE [SoftUni]
+GO
+USE [SoftUni]
+GO
+
+CREATE TABLE [Towns](
+	[Id]			INT IDENTITY,
+	[Name]			NVARCHAR(30),
+	CONSTRAINT PK_Towns PRIMARY KEY([Id])
+)
+
+CREATE TABLE [Addresses](
+	[Id]			INT IDENTITY,
+	[AddressText]	NVARCHAR(30),
+	[TownId]		INT,
+	CONSTRAINT PK_Addresses PRIMARY KEY([Id])
+)
+
+CREATE TABLE [Departments](
+	[Id]			INT IDENTITY,
+	[Name]			NVARCHAR(30),
+	CONSTRAINT PK_Departments PRIMARY KEY([Id])
+)
+
+CREATE TABLE [Employees](
+	[Id]			INT IDENTITY,
+	[FirstName]		NVARCHAR(30) NOT NULL,
+	[MiddleName]	NVARCHAR(30) NOT NULL,
+	[LastName]		NVARCHAR(30) NOT NULL,
+	[JobTitle]		NVARCHAR(30) NOT NULL,
+	[DepartmentId]	INT NOT NULL,
+	[HireDate]		DATE,
+	[Salary]		DECIMAL(7,2),
+	[AddressId]		INT,
+	CONSTRAINT PK_Employees PRIMARY KEY([Id])
+)
+
+ALTER TABLE [Addresses]
+ADD CONSTRAINT FK_Addresses_Towns
+FOREIGN KEY ([TownId]) REFERENCES [Towns]([Id])
+
+ALTER TABLE [Employees]
+ADD CONSTRAINT FK_Employees_Departments
+FOREIGN KEY ([DepartmentId]) REFERENCES [Departments]([Id])
+
+ALTER TABLE [Employees]
+ADD CONSTRAINT FK_Employees_Addresses
+FOREIGN KEY ([AddressId]) REFERENCES [Addresses]([Id])
+
+--18 Basic Insert
+INSERT INTO [Departments]([Name]) VALUES('Software Development')
+INSERT INTO [Departments]([Name]) VALUES('Engineering')
+INSERT INTO [Departments]([Name]) VALUES('Quality Assurance')
+INSERT INTO [Departments]([Name]) VALUES('Sales')
+INSERT INTO [Departments]([Name]) VALUES('Sales')
+
+INSERT INTO [Employees]([FirstName], [MiddleName], [LastName], [JobTitle], [DepartmentId], [HireDate], [Salary])
+	VALUES('Ivan', 'Ivanov', 'Ivanov', '.NET Developer', 1, CONVERT(DATE, '01/02/2013', 103), 3500.00),
+		  ('Petar', 'Petar', 'Petrov', 'Senior Engineer', 2, CONVERT(DATE, '02/03/2004', 103), 4000.00),
+		  ('Maria', 'Petrova', 'Ivanova', 'Intern', 3, CONVERT(DATE, '28/08/2016', 103), 525.25),
+		  ('Georgi', 'Teziev', 'Ivanov', 'CEO', 4, CONVERT(DATE, '09/12/2007', 103), 3000.00),
+		  ('Peter', 'Pan', 'Pan', 'Intern', 5, CONVERT(DATE, '28/08/2016', 103), 599.88)
+
+--19 Basic Select All Fields
+SELECT * 
+	FROM [Towns]
+
+SELECT * 
+	FROM [Departments]
+
+SELECT * 
+	FROM [Employees]
+
+--20 Basic Select All Fields and Order Them
+SELECT *
+	FROM [Towns]
+	ORDER BY [Name]
+
+SELECT *
+	FROM [Departments]
+	ORDER BY [Name]
+
+SELECT *
+	FROM [Employees]
+	ORDER BY [Salary] DESC
+
+--21 Basic Select Some Fields
+SELECT [Name]
+	FROM [Towns]
+	ORDER  BY [Name]
+
+SELECT [Name]
+	FROM [Departments]
+	ORDER BY [Name]
+
+SELECT [FirstName], [LastName], [JobTitle], [Salary]
+	FROM [Employees]
+	ORDER BY [Salary] DESC
+
+--22 Increase Employees Salary
+UPDATE [Employees]
+	SET [Salary] = [Salary] + [Salary] * 0.1
+
+SELECT [Salary]
+	FROM [Employees]
+
+--23 Decrease Tax Rate
+USE [Hotel]
+GO
+
+UPDATE [Payments]
+	SET [TaxRate] = [TaxRate] - [TaxRate] * 0.03;
+
+SELECT [TaxRate]
+	FROM [Payments]
+
+--24 Delete All Records
+DELETE [Occupancies]
