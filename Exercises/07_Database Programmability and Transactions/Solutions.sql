@@ -226,3 +226,186 @@ SELECT SUM(ut.[Cash]) AS [SumCash]
 	RETURN;
 END
 GO
+
+--14 Create Table Logs
+CREATE TABLE [Logs](
+	[LogId]		INT IDENTITY,
+	[AccountId]	INT NOT NULL,
+	[OldSum]	DECIMAL(18, 4) NOT NULL,
+	[NewSum]	DECIMAL(18, 4) NOT NULL,
+	CONSTRAINT PK_Logd 
+	PRIMARY KEY([LogId])
+)
+GO
+
+CREATE TRIGGER tr_changesAccounts ON [Accounts] FOR UPDATE
+AS
+BEGIN
+	INSERT INTO [Logs] 
+	SELECT a.[Id], d.[Balance], a.[Balance]
+	FROM [deleted] AS d
+	JOIN [Accounts] AS a ON d.[Id] = a.[Id]
+END
+GO
+
+--15 Create Table Emails
+CREATE TABLE [NotificationEmails](
+	[Id]		INT IDENTITY,
+	[Recipient]	INT NOT NULL,
+	[Subject]	NVARCHAR(250),
+	[Body]		NVARCHAR(250),
+	CONSTRAINT PK_NotificationEmails
+	PRIMARY KEY([Id])
+)
+GO
+
+CREATE TRIGGER tr_addNotificationEmails ON [Accounts] FOR UPDATE
+AS
+BEGIN
+	INSERT INTO [NotificationEmails]
+	SELECT 
+		a.[Id],
+		CONCAT('Balance change for account: ', a.[Id]),
+		CONCAT('On ', GETDATE(), ' your balance was changed from ', d.[Balance], ' to ', a.[Balance], '.')
+	FROM [Accounts] AS a
+	JOIN [deleted] AS d ON a.[Id] = d.[Id]
+END
+GO
+
+--16 Deposit Money
+CREATE PROCEDURE usp_DepositMoney(@accountId INT, @moneyAmount DECIMAL(18, 4))
+AS
+BEGIN TRANSACTION
+	DECLARE @moneyAmountToString NVARCHAR(MAX);
+	DECLARE @indexOfDecimalPoint INT;
+
+	SET @moneyAmountToString = CONVERT(nvarchar(MAX), @moneyAmount);
+	SET @indexOfDecimalPoint = CHARINDEX('.', @moneyAmountToString);
+
+	IF(@moneyAmount < 0 OR @indexOfDecimalPoint >= 4)
+	BEGIN
+		ROLLBACK
+	END
+
+	UPDATE [Accounts]
+	SET [Balance] += @moneyAmount
+	WHERE [Id] = @accountId
+
+COMMIT
+GO
+
+--17 Withdraw Money Procedure
+CREATE PROCEDURE usp_WithdrawMoney(@accountId INT, @moneyAmount DECIMAL(18, 4))
+AS
+BEGIN TRANSACTION
+	DECLARE @moneyAmountToString NVARCHAR(MAX);
+	DECLARE @indexOfDecimalPoint INT;
+
+	SET @moneyAmountToString = CONVERT(nvarchar(MAX), @moneyAmount);
+	SET @indexOfDecimalPoint = CHARINDEX('.', @moneyAmountToString);
+
+	IF(@moneyAmount < 0 OR @indexOfDecimalPoint >= 4)
+	BEGIN
+		ROLLBACK
+	END
+
+	UPDATE [Accounts]
+	SET [Balance] -= @moneyAmount
+	WHERE [Id] = @accountId
+
+COMMIT
+GO
+
+--18 Money Transfer
+CREATE PROCEDURE usp_TransferMoney(
+	@senderId INT, 
+	@receiverId INT,
+	@amount DECIMAL(18, 4)
+)
+AS
+BEGIN TRANSACTION
+
+	DECLARE @moneyAmountToString NVARCHAR(MAX);
+	DECLARE @indexOfDecimalPoint INT;
+
+	SET @moneyAmountToString = CONVERT(nvarchar(MAX), @amount);
+	SET @indexOfDecimalPoint = CHARINDEX('.', @moneyAmountToString);
+
+	IF(@amount < 0 OR @indexOfDecimalPoint >= 4)
+	BEGIN
+		ROLLBACK
+	END
+
+	DECLARE @currentBalance DECIMAL(18, 4);
+	SET @currentBalance = (
+		SELECT a.[Balance] 
+		FROM [Accounts] AS a 
+		WHERE a.[Id] = @senderId)
+
+	IF((@currentBalance - @amount) < 0)
+	BEGIN
+		ROLLBACK
+	END
+
+	UPDATE [Accounts]
+	SET [Balance] -= @amount
+	WHERE [Id] = @senderId
+
+	UPDATE [Accounts]
+	SET [Balance] += @amount
+	WHERE [Id] = @receiverId
+
+COMMIT
+GO
+
+--21 Employees with Three Projects
+CREATE OR ALTER PROCEDURE usp_AssignProject(
+	@emloyeeId INT, 
+	@projectID INT
+)
+AS
+BEGIN TRANSACTION
+	DECLARE @numberOfEmplooyProjects INT;
+	SET @numberOfEmplooyProjects = (
+		SELECT COUNT(ep.[EmployeeID])
+		FROM [EmployeesProjects] AS ep
+		WHERE ep.[EmployeeID] = @emloyeeId)
+
+	IF(@numberOfEmplooyProjects >= 3)
+	BEGIN
+		ROLLBACK
+		RAISERROR('The employee has too many projects!', 16, 1)
+		RETURN
+	END
+
+	INSERT INTO [EmployeesProjects] VALUES (@emloyeeId, @projectID)
+
+COMMIT
+
+--22 Delete Employees
+CREATE TABLE [Deleted_Employees](
+	[Id]			INT IDENTITY,
+	[FirstName]		VARCHAR(50) NOT NULL,
+	[LastName]		VARCHAR(50) NOT NULL,
+	[MiddleName]	VARCHAR(50) NULL,
+	[JobTitle]		VARCHAR(50) NOT NULL,
+	[DepartmentId]	INT NOT NULL,
+	[Salary]		MONEY NOT NULL,
+	CONSTRAINT PK_Deleted_Employees
+	PRIMARY KEY ([EmployeeId])
+)
+GO
+
+CREATE TRIGGER tr_OnDeleted_Employees ON [Employees] FOR DELETE
+AS
+BEGIN	
+	INSERT INTO [Deleted_Employees] 
+		SELECT 
+			d.[FirstName],
+			d.[LastName],
+			d.[MiddleName],
+			d.[JobTitle],
+			d.[DepartmentID],
+			d.[Salary]
+		FROM [deleted] AS d
+END
